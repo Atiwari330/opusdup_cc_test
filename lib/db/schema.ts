@@ -168,3 +168,89 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+// EHR-specific tables
+export const patient = pgTable('Patient', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  firstName: varchar('firstName', { length: 255 }).notNull(),
+  lastName: varchar('lastName', { length: 255 }).notNull(),
+  dateOfBirth: timestamp('dateOfBirth'),
+  medicalRecordNumber: varchar('medicalRecordNumber', { length: 100 }),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type Patient = InferSelectModel<typeof patient>;
+
+export const sessionTranscript = pgTable('SessionTranscript', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  patientId: uuid('patientId')
+    .notNull()
+    .references(() => patient.id),
+  providerId: uuid('providerId')
+    .notNull()
+    .references(() => user.id),
+  sessionDate: timestamp('sessionDate').notNull(),
+  originalPdfUrl: text('originalPdfUrl'),
+  rawTranscriptText: text('rawTranscriptText').notNull(),
+  processingStatus: varchar('processingStatus', { 
+    enum: ['pending', 'processing', 'completed', 'failed'] 
+  }).notNull().default('pending'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type SessionTranscript = InferSelectModel<typeof sessionTranscript>;
+
+export const clinicalNote = pgTable('ClinicalNote', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  sessionTranscriptId: uuid('sessionTranscriptId')
+    .notNull()
+    .references(() => sessionTranscript.id),
+  templateType: varchar('templateType', { length: 50 }).notNull().default('SOAP'),
+  sectionsData: json('sectionsData').notNull(), // Flexible JSON for different note types
+  overallConfidence: varchar('overallConfidence'), // Store as decimal string
+  rawAiResponse: text('rawAiResponse'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type ClinicalNote = InferSelectModel<typeof clinicalNote>;
+
+export const analysisResult = pgTable('AnalysisResult', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  sessionTranscriptId: uuid('sessionTranscriptId')
+    .notNull()
+    .references(() => sessionTranscript.id),
+  analysisType: varchar('analysisType', { 
+    enum: ['soap_note', 'cpt_codes', 'icd_codes', 'risk_assessment'] 
+  }).notNull(),
+  result: json('result').notNull(),
+  confidence: varchar('confidence'), // Store as decimal string
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type AnalysisResult = InferSelectModel<typeof analysisResult>;
+
+export const analysisCorrection = pgTable('AnalysisCorrection', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  // Reference to either clinical note or analysis result
+  clinicalNoteId: uuid('clinicalNoteId').references(() => clinicalNote.id),
+  analysisResultId: uuid('analysisResultId').references(() => analysisResult.id),
+  // Correction details
+  correctionType: varchar('correctionType', { 
+    enum: ['section_edit', 'confidence_adjustment', 'code_change', 'risk_level_change', 'full_rewrite'] 
+  }).notNull(),
+  fieldName: varchar('fieldName', { length: 100 }), // e.g., 'subjective', 'plan', 'cpt_codes'
+  originalValue: text('originalValue').notNull(),
+  correctedValue: text('correctedValue').notNull(),
+  correctionNotes: text('correctionNotes'), // Optional provider notes
+  // Provider who made the correction
+  correctedByProviderId: uuid('correctedByProviderId')
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type AnalysisCorrection = InferSelectModel<typeof analysisCorrection>;
