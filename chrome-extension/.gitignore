@@ -1,0 +1,8 @@
+node_modules/
+*.js
+*.js.map
+!webpack.config.js
+.DS_Store
+*.zip
+*.crx
+*.pem

@@ -3,7 +3,16 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(npx drizzle-kit:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npx json5:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node:*)",
+      "Bash(touch:*)",
+      "Bash(pnpm build:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
