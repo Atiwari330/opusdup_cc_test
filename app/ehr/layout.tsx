@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, FileText, Upload, Settings, Activity } from 'lucide-react';
+import { Home, FileText, Upload, Settings, Activity, Wand2 } from 'lucide-react';
 
 interface EHRLayoutProps {
   children: ReactNode;
@@ -27,6 +27,12 @@ export default function EHRLayout({ children }: EHRLayoutProps) {
                   <Link href="/ehr" className="flex items-center gap-2">
                     <Home className="w-4 h-4" />
                     Dashboard
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/ehr/wizard" className="flex items-center gap-2">
+                    <Wand2 className="w-4 h-4" />
+                    Wizard
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
